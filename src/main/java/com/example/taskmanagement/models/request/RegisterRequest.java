@@ -1,9 +1,9 @@
-package com.example.taskmanagement.dto;
+package com.example.taskmanagement.models.request;
 
 import lombok.Data;
 
 @Data
-public class RegisterDto {
+public class RegisterRequest {
     private String username;
     private String password;
     private String firstName;

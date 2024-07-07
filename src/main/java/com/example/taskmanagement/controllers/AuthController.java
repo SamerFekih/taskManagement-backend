@@ -1,7 +1,7 @@
 package com.example.taskmanagement.controllers;
-import com.example.taskmanagement.dto.AuthResponseDto;
-import com.example.taskmanagement.dto.LoginDto;
-import com.example.taskmanagement.dto.RegisterDto;
+import com.example.taskmanagement.models.response.LoginResponse;
+import com.example.taskmanagement.models.request.LoginRequest;
+import com.example.taskmanagement.models.request.RegisterRequest;
 import com.example.taskmanagement.models.Role;
 import com.example.taskmanagement.models.User;
 import com.example.taskmanagement.repositories.RoleRepository;
@@ -43,18 +43,18 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponseDto> login(@RequestBody LoginDto loginDto){
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginDto){
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginDto.getUsername(),
                         loginDto.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String token = jwtGenerator.generateToken(authentication);
-        return new ResponseEntity<>(new AuthResponseDto(token), HttpStatus.OK);
+        return new ResponseEntity<>(new LoginResponse(token), HttpStatus.OK);
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody RegisterDto registerDto) {
+    public ResponseEntity<String> register(@RequestBody RegisterRequest registerDto) {
         if (registerDto.getUsername().isEmpty() ||
                 registerDto.getPassword().isEmpty() ||
                 registerDto.getFirstName().isEmpty() ||

@@ -1,23 +1,37 @@
 package com.example.taskmanagement.controllers;
 
-import org.springframework.http.HttpStatus;
+import com.example.taskmanagement.models.request.CreateTaskRequest;
+import com.example.taskmanagement.models.request.DeleteTasksRequest;
+import com.example.taskmanagement.models.response.TaskResponse;
+import com.example.taskmanagement.services.TaskService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
-@Controller
+@RestController
 @RequestMapping("/api/task")
 public class TaskController {
-    @ResponseBody
-    @RequestMapping(value = "/hello",method = RequestMethod.GET)
-    public ResponseEntity<String> hello(){
-        return ResponseEntity.ok("Hello World");
+
+    @Autowired
+    private TaskService taskService;
+
+    @GetMapping("/getTasks")
+    public ResponseEntity<List<TaskResponse>> getTasksForCurrentUser(){
+        List<TaskResponse> tasks = taskService.getTasksForCurrentUser();
+        return ResponseEntity.ok(tasks);
+    }
+    @PostMapping("/addTask")
+    public ResponseEntity<TaskResponse> createTask(@RequestBody CreateTaskRequest createTaskRequest) {
+        TaskResponse taskDTO = taskService.createTask(createTaskRequest);
+        return ResponseEntity.ok(taskDTO);
     }
 
+    @DeleteMapping("/deleteTasks")
+    public ResponseEntity<String> deleteTasks(@RequestBody DeleteTasksRequest deleteTasksRequest) {
+        taskService.deleteTasks(deleteTasksRequest);
+        return ResponseEntity.ok("Task(s) deleted successfully");
+    }
 
 }

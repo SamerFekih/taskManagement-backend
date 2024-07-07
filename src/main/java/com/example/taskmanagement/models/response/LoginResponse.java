@@ -1,13 +1,13 @@
-package com.example.taskmanagement.dto;
+package com.example.taskmanagement.models.response;
 
 import lombok.Data;
 
 @Data
-public class AuthResponseDto {
+public class LoginResponse {
     private String accessToken;
     private String tokenType = "Bearer ";
 
-    public AuthResponseDto(String accessToken) {
+    public LoginResponse(String accessToken) {
         this.accessToken = accessToken;
     }
 }
