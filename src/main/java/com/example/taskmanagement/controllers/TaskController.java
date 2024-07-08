@@ -2,6 +2,7 @@ package com.example.taskmanagement.controllers;
 
 import com.example.taskmanagement.models.request.CreateTaskRequest;
 import com.example.taskmanagement.models.request.DeleteTasksRequest;
+import com.example.taskmanagement.models.request.UpdateTaskRequest;
 import com.example.taskmanagement.models.response.TaskResponse;
 import com.example.taskmanagement.services.TaskService;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +30,12 @@ public class TaskController {
     public ResponseEntity<TaskResponse> createTask(@RequestBody CreateTaskRequest createTaskRequest) {
         TaskResponse taskDTO = taskService.createTask(createTaskRequest);
         return ResponseEntity.ok(taskDTO);
+    }
+
+    @PutMapping("/editTask")
+    public ResponseEntity<TaskResponse> updateTask(@RequestBody UpdateTaskRequest updateTaskRequest) {
+        TaskResponse updatedTask = taskService.updateTask(updateTaskRequest);
+        return ResponseEntity.ok(updatedTask);
     }
 
     @DeleteMapping("/deleteTasks")

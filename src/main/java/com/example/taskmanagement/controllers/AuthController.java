@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -43,13 +45,18 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginDto){
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest){
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        loginDto.getUsername(),
-                        loginDto.getPassword()));
+                        loginRequest.getUsername(),
+                        loginRequest.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        String token = jwtGenerator.generateToken(authentication);
+        Map<String, Object> additionalClaims = new HashMap<>();
+        User user = userRepository.findByUsername(loginRequest.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        additionalClaims.put("firstname", user.getFirstName());
+        additionalClaims.put("lastname", user.getLastName());
+        String token = jwtGenerator.generateToken(authentication,additionalClaims);
         return new ResponseEntity<>(new LoginResponse(token), HttpStatus.OK);
     }
 

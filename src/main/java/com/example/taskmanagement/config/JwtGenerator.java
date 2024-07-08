@@ -3,6 +3,8 @@ import java.util.Date;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import java.security.Key;
+import java.util.Map;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.SignatureAlgorithm;
 
@@ -14,18 +16,21 @@ import org.springframework.stereotype.Component;
 public class JwtGenerator {
     private static final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
 
-    public String generateToken(Authentication authentication) {
+    public String generateToken(Authentication authentication, Map<String, Object> additionalClaims) {
         String username = authentication.getName();
         Date currentDate = new Date();
         Date expireDate = new Date(currentDate.getTime() + SecurityConstants.JWT_EXPIRATION);
 
+        // Add additional claims to the token
         String token = Jwts.builder()
                 .setSubject(username)
-                .setIssuedAt( new Date())
+                .setIssuedAt(currentDate)
                 .setExpiration(expireDate)
-                .signWith(key,SignatureAlgorithm.HS512)
+                .addClaims(additionalClaims)
+                .signWith(key, SignatureAlgorithm.HS512)
                 .compact();
-        System.out.println("New token :");
+
+        System.out.println("New token:");
         System.out.println(token);
         return token;
     }

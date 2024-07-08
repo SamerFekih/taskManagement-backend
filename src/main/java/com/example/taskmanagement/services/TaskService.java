@@ -4,14 +4,19 @@ package com.example.taskmanagement.services;
 import com.example.taskmanagement.mappers.TaskDTOMapper;
 import com.example.taskmanagement.models.request.CreateTaskRequest;
 import com.example.taskmanagement.models.request.DeleteTasksRequest;
+import com.example.taskmanagement.models.request.UpdateTaskRequest;
 import com.example.taskmanagement.models.response.TaskResponse;
 import com.example.taskmanagement.models.Task;
 import com.example.taskmanagement.models.User;
+import com.example.taskmanagement.models.response.TasksStatisticsResponse;
 import com.example.taskmanagement.repositories.TaskRepository;
 import com.example.taskmanagement.repositories.UserRepository;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import java.util.List;
@@ -56,14 +61,40 @@ public class TaskService {
 
         return taskDTOMapper.convertToTaskDTO(task);
     }
+    public TaskResponse updateTask(UpdateTaskRequest updateTaskRequest) {
+        String username = getCurrentUsername();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
+        Optional<Task> optionalTask = taskRepository.findById(updateTaskRequest.getId());
+        if (optionalTask.isPresent() && optionalTask.get().getUser().equals(user)) {
+            Task task = optionalTask.get();
+            task.setStatus(updateTaskRequest.getStatus());
+            task.setPriority(updateTaskRequest.getPriority());
+            taskRepository.save(task);
+            return taskDTOMapper.convertToTaskDTO(task);
+        } else {
+            throw new RuntimeException("Task not found or user not authorized");
+        }
+    }
     public void deleteTasks(DeleteTasksRequest deleteTasksRequest) {
         String username = getCurrentUsername();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         taskRepository.deleteByTaskIdsAndUserId(deleteTasksRequest.getTaskIds(),user.getId());
     }
-    private String getCurrentUsername() {
+
+    public TasksStatisticsResponse getTaskStatusStatistics(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<Task> tasks = taskRepository.findByUser(user);
+        Map<String, Long> statusCount = tasks.stream()
+                .collect(Collectors.groupingBy(Task::getStatus, Collectors.counting()));
+
+        return new TasksStatisticsResponse(statusCount);
+    }
+    public String getCurrentUsername() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (principal instanceof UserDetails) {
             return ((UserDetails) principal).getUsername();
