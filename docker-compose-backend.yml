@@ -1,0 +1,43 @@
+version: '3'
+
+services:
+  backend:
+    build: ./
+    ports:
+      - "5050:5050"
+    depends_on:
+      - db
+    env_file:
+      - .env
+    networks:
+      - taskmanagement_network
+  db:
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    env_file:
+      - .env
+    networks:
+      - taskmanagement_network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    ports:
+      - "5050:80"
+    env_file:
+      - .env
+    depends_on:
+      - db
+    networks:
+      - taskmanagement_network
+    volumes:
+      - my-data:/var/lib/pgadmin
+
+volumes:
+  pgdata:
+  my-data:
+
+networks:
+  taskmanagement_network:
