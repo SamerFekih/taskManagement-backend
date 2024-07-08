@@ -4,7 +4,6 @@ import com.example.taskmanagement.models.request.CreateTaskRequest;
 import com.example.taskmanagement.models.request.DeleteTasksRequest;
 import com.example.taskmanagement.models.response.TaskResponse;
 import com.example.taskmanagement.services.TaskService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,8 +13,12 @@ import java.util.List;
 @RequestMapping("/api/task")
 public class TaskController {
 
-    @Autowired
-    private TaskService taskService;
+    private final TaskService taskService;
+
+    public TaskController(TaskService taskService) {
+        this.taskService = taskService;
+    }
+
 
     @GetMapping("/getTasks")
     public ResponseEntity<List<TaskResponse>> getTasksForCurrentUser(){

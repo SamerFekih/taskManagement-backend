@@ -1,6 +1,7 @@
 
 package com.example.taskmanagement.services;
 
+import com.example.taskmanagement.mappers.TaskDTOMapper;
 import com.example.taskmanagement.models.request.CreateTaskRequest;
 import com.example.taskmanagement.models.request.DeleteTasksRequest;
 import com.example.taskmanagement.models.response.TaskResponse;
@@ -8,7 +9,6 @@ import com.example.taskmanagement.models.Task;
 import com.example.taskmanagement.models.User;
 import com.example.taskmanagement.repositories.TaskRepository;
 import com.example.taskmanagement.repositories.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -19,12 +19,14 @@ import java.util.List;
 @Service
 public class TaskService {
 
-    @Autowired
-    private TaskRepository taskRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
+    private final TaskRepository taskRepository;
+    private final UserRepository userRepository;
+    private final TaskDTOMapper taskDTOMapper;
+    public TaskService(TaskRepository taskRepository, UserRepository userRepository, TaskDTOMapper taskDTOMapper){
+        this.taskRepository = taskRepository;
+        this.userRepository = userRepository;
+        this.taskDTOMapper = taskDTOMapper;
+    }
     public List<TaskResponse> getTasksForCurrentUser() {
         String username = getCurrentUsername();
         User user = userRepository.findByUsername(username)
@@ -32,7 +34,7 @@ public class TaskService {
 
         List<Task> tasks = taskRepository.findByUser(user);
 
-        return tasks.stream().map(this::convertToDTO).collect(Collectors.toList());
+        return tasks.stream().map(taskDTOMapper::convertToTaskDTO).collect(Collectors.toList());
     }
 
 
@@ -52,7 +54,7 @@ public class TaskService {
 
         taskRepository.save(task);
 
-        return convertToDTO(task);
+        return taskDTOMapper.convertToTaskDTO(task);
     }
 
     public void deleteTasks(DeleteTasksRequest deleteTasksRequest) {
@@ -69,17 +71,7 @@ public class TaskService {
             return principal.toString();
         }
     }
-    private TaskResponse convertToDTO(Task task) {
-        TaskResponse taskDto = new TaskResponse();
-        taskDto.setId(task.getId());
-        taskDto.setTitle(task.getTitle());
-        taskDto.setDescription(task.getDescription());
-        taskDto.setDueDate(task.getDueDate());
-        taskDto.setPriority(task.getPriority());
-        taskDto.setStatus(task.getStatus());
-        taskDto.setCategory(task.getCategory());
-        return taskDto;
-    }
+
 
 
 }
