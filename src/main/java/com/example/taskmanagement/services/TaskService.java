@@ -27,13 +27,15 @@ public class TaskService {
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
     private final TaskDTOMapper taskDTOMapper;
-    public TaskService(TaskRepository taskRepository, UserRepository userRepository, TaskDTOMapper taskDTOMapper){
+    private final AuthService authService;
+    public TaskService(TaskRepository taskRepository, UserRepository userRepository, TaskDTOMapper taskDTOMapper, AuthService authService){
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
         this.taskDTOMapper = taskDTOMapper;
+        this.authService = authService;
     }
     public List<TaskResponse> getTasksForCurrentUser() {
-        String username = getCurrentUsername();
+        String username = authService.getCurrentUsername();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -44,7 +46,7 @@ public class TaskService {
 
 
     public TaskResponse createTask(CreateTaskRequest createTaskRequest) {
-        String username = getCurrentUsername();
+        String username = authService.getCurrentUsername();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -62,7 +64,7 @@ public class TaskService {
         return taskDTOMapper.convertToTaskDTO(task);
     }
     public TaskResponse updateTask(UpdateTaskRequest updateTaskRequest) {
-        String username = getCurrentUsername();
+        String username = authService.getCurrentUsername();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -78,7 +80,7 @@ public class TaskService {
         }
     }
     public void deleteTasks(DeleteTasksRequest deleteTasksRequest) {
-        String username = getCurrentUsername();
+        String username = authService.getCurrentUsername();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         taskRepository.deleteByTaskIdsAndUserId(deleteTasksRequest.getTaskIds(),user.getId());
@@ -94,14 +96,7 @@ public class TaskService {
 
         return new TasksStatisticsResponse(statusCount);
     }
-    public String getCurrentUsername() {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal instanceof UserDetails) {
-            return ((UserDetails) principal).getUsername();
-        } else {
-            return principal.toString();
-        }
-    }
+
 
 
 
