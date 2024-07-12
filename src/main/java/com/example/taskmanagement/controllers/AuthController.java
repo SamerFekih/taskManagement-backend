@@ -2,95 +2,56 @@ package com.example.taskmanagement.controllers;
 import com.example.taskmanagement.models.response.LoginResponse;
 import com.example.taskmanagement.models.request.LoginRequest;
 import com.example.taskmanagement.models.request.RegisterRequest;
-import com.example.taskmanagement.models.Role;
-import com.example.taskmanagement.models.User;
-import com.example.taskmanagement.repositories.RoleRepository;
-import com.example.taskmanagement.repositories.UserRepository;
-import com.example.taskmanagement.config.JwtGenerator;
+import com.example.taskmanagement.services.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    private AuthenticationManager authenticationManager;
-    private UserRepository userRepository;
-    private RoleRepository roleRepository;
-    private PasswordEncoder passwordEncoder;
-    private JwtGenerator jwtGenerator;
+    private final AuthService authService;
 
     @Autowired
-    public AuthController(AuthenticationManager authenticationManager, UserRepository userRepository,
-                          RoleRepository roleRepository, PasswordEncoder passwordEncoder, JwtGenerator jwtGenerator) {
-        this.authenticationManager = authenticationManager;
-        this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtGenerator = jwtGenerator;
+    public AuthController(AuthService authService) {
+        this.authService = authService;
     }
 
+    /**
+     * Authenticate a user and generate a JWT token.
+     *
+     * @param loginRequest the login request containing username and password
+     * @return a response entity containing the JWT token
+     */
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest){
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginRequest.getUsername(),
-                        loginRequest.getPassword()));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        Map<String, Object> additionalClaims = new HashMap<>();
-        User user = userRepository.findByUsername(loginRequest.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        additionalClaims.put("firstname", user.getFirstName());
-        additionalClaims.put("lastname", user.getLastName());
-        String token = jwtGenerator.generateToken(authentication,additionalClaims);
-        return new ResponseEntity<>(new LoginResponse(token), HttpStatus.OK);
-    }
 
+        return authService.login(loginRequest);
+    }
+    /**
+     * Register a new user.
+     *
+     * @param registerRequest the register request containing user details
+     * @return a response entity with the registration status
+     */
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody RegisterRequest registerDto) {
-        if (registerDto.getUsername().isEmpty() ||
-                registerDto.getPassword().isEmpty() ||
-                registerDto.getFirstName().isEmpty() ||
-                registerDto.getLastName().isEmpty()) {
-            return new ResponseEntity<>("All fields must have a valid length!", HttpStatus.BAD_REQUEST);
-        }
-        if (userRepository.existsByUsername(registerDto.getUsername())) {
-            return new ResponseEntity<>("Username is taken!", HttpStatus.BAD_REQUEST);
-        }
-        User user = new User();
-        user.setUsername(registerDto.getUsername());
-        user.setPassword(passwordEncoder.encode((registerDto.getPassword())));
-        user.setFirstName((registerDto.getFirstName()));
-        user.setLastName((registerDto.getLastName()));
-        Role roles = roleRepository.findByName("USER").get();
-        user.setRoles(Collections.singletonList(roles));
-
-        userRepository.save(user);
-
-        return new ResponseEntity<>("User registered successfully!", HttpStatus.OK);
+    public ResponseEntity<String> register(@RequestBody RegisterRequest registerRequest) {
+        return authService.register(registerRequest);
     }
 
+    /**
+     * Verify if the current token is valid.
+     *
+     * @return a response entity indicating the token validity
+     */
     @PostMapping("/verifyToken")
     public ResponseEntity<String> verifyToken() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated()) {
-            return new ResponseEntity<>("Valid token!", HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>("Invalid token!",HttpStatus.UNAUTHORIZED);
-        }
+        return authService.verifyToken();
     }
 }

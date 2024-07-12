@@ -5,6 +5,7 @@ import com.example.taskmanagement.models.response.TaskPriorityStatisticsResponse
 import com.example.taskmanagement.repositories.TaskRepository;
 import com.example.taskmanagement.repositories.UserRepository;
 import com.example.taskmanagement.models.User;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,8 +13,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 @Service
 public class StatisticsService {
-    private TaskRepository taskRepository;
-    private UserRepository userRepository;
+    private final TaskRepository taskRepository;
+    private final UserRepository userRepository;
+    @Autowired
     public StatisticsService(TaskRepository taskRepository,UserRepository userRepository){
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;

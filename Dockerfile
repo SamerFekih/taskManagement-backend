@@ -9,5 +9,5 @@ RUN mvn clean install -DskipTests
 FROM amazoncorretto:17
 WORKDIR /app
 COPY --from=build /app/target/taskmanagement-0.0.1-SNAPSHOT.jar /app/taskmanagement.jar
-EXPOSE 1234
+EXPOSE 5050
 ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "/app/taskmanagement.jar"]
